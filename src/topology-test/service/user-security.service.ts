@@ -38,7 +38,7 @@ export class UserSecurityService {
     return totalUserBox;
   }
 
-  updateUserSecurityTemplate(): void {
+  updateUserSecurityTemplate(): string {
     const userJson: User = this.getUserData();
     const { users, notUsedUsers, notUsedMFAUsers, notChangePasswordUsers } =
       userJson;
@@ -77,5 +77,6 @@ export class UserSecurityService {
     );
 
     writeD2Output(filename, updatedNotChangedUserBox);
+    return updatedNotChangedUserBox;
   }
 }
