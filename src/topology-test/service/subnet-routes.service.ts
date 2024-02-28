@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { join } from 'path';
 import * as fs from 'fs';
-import { getD2Template, writeD2Output } from '@/func';
+import { getD2Template, replaceValue, writeD2Output } from '@/func';
 
 interface RouteInfo {
   routetableid: string;
@@ -28,6 +28,73 @@ interface SubnetRoutes {
 
 @Injectable()
 export class SubnetRoutesService {
+  updateSubnetRoutesTemplate(): string {
+    const subnetRoutesJson: SubnetRoutes[] = this.getSubnetRoutesData();
+    const filename = 'subnet-routes';
+
+    // 1. vpc별로 d2 output 생성.
+    let result = '';
+
+    subnetRoutesJson.forEach((subnetRoutes: SubnetRoutes, idx: number) => {
+      const { vpcId, data } = subnetRoutes;
+
+      // update vars
+      const d2Template = getD2Template(filename);
+
+      const { resultString, routetableIds, gatewayIds, natgatewayIds } =
+        this.updateVars(data);
+      const subnetData = this.classifySubnetAsAz(data);
+      const { routetable, gateway, natgateway } = this.updateRouteInfo(
+        routetableIds,
+        gatewayIds,
+        natgatewayIds,
+      );
+
+      const relation = this.updateSubnetRelation(data);
+
+      const updatedVars = replaceValue(
+        d2Template,
+        '"{{update-vars}}"',
+        resultString,
+      );
+
+      const updatedSubnet = replaceValue(
+        updatedVars,
+        '"{{update-subnets}}"',
+        subnetData,
+      );
+      const updatedRoutetable = replaceValue(
+        updatedSubnet,
+        '"{{update-routetables}}"',
+        routetable,
+      );
+      const updatedGateway = replaceValue(
+        updatedRoutetable,
+        '"{{update-gateways}}"',
+        gateway,
+      );
+      const updatedNatGateway = replaceValue(
+        updatedGateway,
+        '"{{update-natgateways}}"',
+        natgateway,
+      );
+      const updatedRelationship = replaceValue(
+        updatedNatGateway,
+        '"{{update-relationship}}"',
+        relation,
+      );
+      const updatedVpcId = replaceValue(
+        updatedRelationship,
+        '"{{update-vpc-id}}"',
+        vpcId,
+      );
+
+      result += updatedVpcId;
+      writeD2Output(`${filename}-${vpcId}`, updatedVpcId);
+    });
+    return result;
+  }
+
   private getSubnetRoutesData() {
     try {
       const subnetRoutesData = fs.readFileSync(
@@ -166,61 +233,5 @@ export class SubnetRoutesService {
       });
     });
     return relation;
-  }
-
-  updateSubnetRoutesTemplate(): string {
-    const subnetRoutesJson: SubnetRoutes[] = this.getSubnetRoutesData();
-    const filename = 'subnet-routes';
-
-    // 1. vpc별로 d2 output 생성.
-    let result = '';
-
-    subnetRoutesJson.forEach((subnetRoutes: SubnetRoutes, idx: number) => {
-      const { vpcId, data } = subnetRoutes;
-
-      // update vars
-      const d2Template = getD2Template(filename);
-
-      const { resultString, routetableIds, gatewayIds, natgatewayIds } =
-        this.updateVars(data);
-      const subnetData = this.classifySubnetAsAz(data);
-      const { routetable, gateway, natgateway } = this.updateRouteInfo(
-        routetableIds,
-        gatewayIds,
-        natgatewayIds,
-      );
-
-      const relation = this.updateSubnetRelation(data);
-
-      const updatedVars = d2Template.replace('"{{update-vars}}"', resultString);
-      const updatedSubnet = updatedVars.replace(
-        '"{{update-subnets}}"',
-        subnetData,
-      );
-      const updatedRoutetable = updatedSubnet.replace(
-        '"{{update-routetables}}"',
-        routetable,
-      );
-      const updatedGateway = updatedRoutetable.replace(
-        '"{{update-gateways}}"',
-        gateway,
-      );
-      const updatedNatGateway = updatedGateway.replace(
-        '"{{update-natgateways}}"',
-        natgateway,
-      );
-      const updatedRelationship = updatedNatGateway.replace(
-        '"{{update-relationship}}"',
-        relation,
-      );
-      const updatedVpcId = updatedRelationship.replace(
-        '"{{update-vpc-id}}"',
-        vpcId,
-      );
-
-      result += updatedVpcId;
-      writeD2Output(`${filename}-${vpcId}`, updatedVpcId);
-    });
-    return result;
   }
 }

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { join } from 'path';
 import * as fs from 'fs';
-import { getD2Template, writeD2Output } from '@/func';
+import { getD2Template, writeD2Output, replaceValue } from '@/func';
 
 interface Region {
   regionsList: string[];
@@ -9,6 +9,29 @@ interface Region {
 
 @Injectable()
 export class RegionService {
+  updateRegionTemplate(): string {
+    const regionJson: Region = this.getRegionData();
+    const { regionsList } = regionJson;
+    const filename = 'region';
+
+    const d2Template = getD2Template(filename);
+
+    // data <-> d2 "{{}}" values
+    const { regionPosData, cnt } = this.setPosition(regionsList);
+    const pins = this.setPin(cnt);
+
+    // update d2
+    const updatedVars = replaceValue(
+      d2Template,
+      '"{{update-vars}}"',
+      regionPosData,
+    );
+    const updatedPins = replaceValue(updatedVars, '"{{update-regions}}"', pins);
+
+    writeD2Output(filename, updatedPins);
+    return updatedPins;
+  }
+
   private getRegionData() {
     try {
       const regionData = fs.readFileSync(
@@ -58,24 +81,5 @@ export class RegionService {
     }
 
     return pins;
-  }
-
-  updateRegionTemplate(): string {
-    const regionJson: Region = this.getRegionData();
-    const { regionsList } = regionJson;
-    const filename = 'region';
-
-    const d2Template = getD2Template(filename);
-
-    // data <-> d2 "{{}}" values
-    const { regionPosData, cnt } = this.setPosition(regionsList);
-    const pins = this.setPin(cnt);
-
-    // update d2
-    const updatedVars = d2Template.replace('"{{update-vars}}"', regionPosData);
-    const updatedPins = updatedVars.replace('"{{update-regions}}"', pins);
-
-    writeD2Output(filename, updatedPins);
-    return updatedPins;
   }
 }

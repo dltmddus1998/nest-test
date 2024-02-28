@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { join } from 'path';
 import * as fs from 'fs';
-import { getD2Template, writeD2Output } from '@/func';
+import { getD2Template, writeD2Output, replaceValue } from '@/func';
 
 interface User {
   users: string[];
@@ -12,6 +12,49 @@ interface User {
 
 @Injectable()
 export class UserSecurityService {
+  updateUserSecurityTemplate(): string {
+    const userJson: User = this.getUserData();
+    const { users, notUsedUsers, notUsedMFAUsers, notChangePasswordUsers } =
+      userJson;
+    const filename = 'security-users';
+
+    const userId = this.updateVars(users);
+
+    const d2Template = getD2Template(filename);
+    const updatedVars = replaceValue(d2Template, '"{{update-vars}}"', userId);
+
+    const totalUserBox = this.createUserBox(users);
+    const updatedUsers = replaceValue(
+      updatedVars,
+      '"{{update-total-box}}"',
+      totalUserBox,
+    );
+
+    const unUsedUserBox = this.createUserBox(notUsedUsers);
+    const updatedunUsedUsers = replaceValue(
+      updatedUsers,
+      '"{{update-unused-box}}"',
+      unUsedUserBox,
+    );
+
+    const unusedMFAUserBox = this.createUserBox(notUsedMFAUsers);
+    const updatedUnusedMFAUserBox = replaceValue(
+      updatedunUsedUsers,
+      '"{{update-mfa-violated-box}}"',
+      unusedMFAUserBox,
+    );
+
+    const notChangedUserBox = this.createUserBox(notChangePasswordUsers);
+    const updatedNotChangedUserBox = replaceValue(
+      updatedUnusedMFAUserBox,
+      '"{{update-password-aged-box}}"',
+      notChangedUserBox,
+    );
+
+    writeD2Output(filename, updatedNotChangedUserBox);
+    return updatedNotChangedUserBox;
+  }
+
   private getUserData(): any {
     try {
       const userData = fs.readFileSync(
@@ -25,6 +68,15 @@ export class UserSecurityService {
     }
   }
 
+  private updateVars(users: string[]) {
+    let userId = '';
+    users.forEach((user: string, idx: number) => {
+      userId += `\n`;
+      userId += `    user${idx + 1}: ${user}\n`;
+    });
+    return userId;
+  }
+
   private createUserBox(usersCategory: any[]): any {
     let totalUserBox = '';
 
@@ -36,47 +88,5 @@ export class UserSecurityService {
       totalUserBox += `}\n\n`;
     });
     return totalUserBox;
-  }
-
-  updateUserSecurityTemplate(): string {
-    const userJson: User = this.getUserData();
-    const { users, notUsedUsers, notUsedMFAUsers, notChangePasswordUsers } =
-      userJson;
-    const filename = 'security-users';
-
-    let userId = '';
-    users.forEach((user: string, idx: number) => {
-      userId += `\tuser${idx + 1}: ${user}\n`;
-    });
-
-    const d2Template = getD2Template(filename);
-    const updatedVars = d2Template.replace('"{{update-vars}}"', userId);
-
-    const totalUserBox = this.createUserBox(users);
-    const updatedUsers = updatedVars.replace(
-      '"{{update-total-box}}"',
-      totalUserBox,
-    );
-
-    const unUsedUserBox = this.createUserBox(notUsedUsers);
-    const updatedunUsedUsers = updatedUsers.replace(
-      '"{{update-unused-box}}"',
-      unUsedUserBox,
-    );
-
-    const unusedMFAUserBox = this.createUserBox(notUsedMFAUsers);
-    const updatedUnusedMFAUserBox = updatedunUsedUsers.replace(
-      '"{{update-mfa-violated-box}}"',
-      unusedMFAUserBox,
-    );
-
-    const notChangedUserBox = this.createUserBox(notChangePasswordUsers);
-    const updatedNotChangedUserBox = updatedUnusedMFAUserBox.replace(
-      '"{{update-password-aged-box}}"',
-      notChangedUserBox,
-    );
-
-    writeD2Output(filename, updatedNotChangedUserBox);
-    return updatedNotChangedUserBox;
   }
 }
