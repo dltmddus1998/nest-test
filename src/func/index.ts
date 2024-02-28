@@ -17,12 +17,20 @@ export function getD2Template(filename: string) {
 export function writeD2Output(filename: string, d2Output: string) {
   try {
     fs.writeFileSync(
-      join(__dirname, `../template/${filename}-update.d2`),
+      join(__dirname, `../template/update/${filename}-update.d2`),
       d2Output,
       {
         encoding: 'utf-8',
       },
     );
+  } catch (error) {
+    console.error(`error = `, error);
+  }
+}
+
+export function replaceValue(preValue: string, value: string, data: string) {
+  try {
+    return preValue.replace(value, data);
   } catch (error) {
     console.error(`error = `, error);
   }
