@@ -3,6 +3,7 @@
 /node_modules
 /src/data
 /src/template
+.env
 
 # Logs
 logs

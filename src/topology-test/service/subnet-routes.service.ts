@@ -209,9 +209,9 @@ export class SubnetRoutesService {
       d['subnets'].forEach((subnet: Subnet, subnetIdx: number) => {
         subnet['routeInfo'].forEach((routeInfo: RouteInfo) => {
           if (routeInfo['natgatewayid'] && routeInfo['routetableid']) {
-            relation += `vpc.box-subnets.box-az${idx + 1}.subnet${idx + 1}-${
+            relation += `box-subnets.box-az${idx + 1}.subnet${idx + 1}-${
               subnetIdx + 1
-            } -> vpc.box-routetables.routetable1 -> vpc.box-gateways.natgatewayid: { \n`;
+            } -> box-routetables.routetable1 -> box-gateways.natgatewayid: { \n`;
             // relation += `  style.animated: true \n`
             relation += `  style.opacity: 0.8 \n`;
             relation += `  style.stroke: blue \n`;
@@ -220,9 +220,9 @@ export class SubnetRoutesService {
           }
 
           if (routeInfo['gatewayid'] && routeInfo['routetableid']) {
-            relation += `vpc.box-subnets.box-az${idx + 1}.subnet${idx + 1}-${
+            relation += `box-subnets.box-az${idx + 1}.subnet${idx + 1}-${
               subnetIdx + 1
-            } -> vpc.box-routetables.routetable1 -> vpc.box-gateways.igatewayid: { \n`;
+            } -> box-routetables.routetable1 -> box-gateways.igatewayid: { \n`;
             // relation += `  style.animated: true \n`;
             relation += `  style.opacity: 0.8 \n`;
             relation += `  style.stroke: blue \n`;
