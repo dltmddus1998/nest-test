@@ -4,8 +4,6 @@ import {
 } from '@aws-sdk/client-resource-explorer-2';
 
 export class Explorer {
-  // constructor() {}
-
   async test() {
     const resourceExplorerClient = new ResourceExplorer2Client({
       region: 'ap-northeast-2',
