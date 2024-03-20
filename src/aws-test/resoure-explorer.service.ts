@@ -5,6 +5,6 @@ import { Explorer } from './explore';
 export class ResourceExplorerService {
   constructor(private readonly explorer: Explorer) {}
   async exploreComputeInfo() {
-    return await this.explorer.test();
+    // return await this.explorer.test();
   }
 }
