@@ -7,6 +7,6 @@ export class ResourceExplorerController {
 
   @Get('compute')
   getComputeInfo(): any {
-    return this.resourceExplorerService.exploreComputeInfo();
+    // return this.resourceExplorerService.exploreComputeInfo();
   }
 }

@@ -12,7 +12,7 @@ import { Explorer } from './explore';
       envFilePath: ['.env'],
     }),
   ],
-  controllers: [ResourceExplorerController],
-  providers: [ResourceExplorerService, Explorer],
+  // controllers: [ResourceExplorerController],
+  // providers: [ResourceExplorerService, Explorer],
 })
 export class ResourceExplorerModule {}
