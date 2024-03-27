@@ -7,14 +7,14 @@ interface User {
   users: string[];
   notUsedUsers: string[];
   notUsedMFAUsers: string[];
-  notChangePasswordUsers: string[];
+  notChangedPasswordUsers: string[];
 }
 
 @Injectable()
 export class UserSecurityService {
   updateUserSecurityTemplate(): string {
     const userJson: User = this.getUserData();
-    const { users, notUsedUsers, notUsedMFAUsers, notChangePasswordUsers } =
+    const { users, notUsedUsers, notUsedMFAUsers, notChangedPasswordUsers } =
       userJson;
     const filename = 'security-users';
 
@@ -44,7 +44,7 @@ export class UserSecurityService {
       unusedMFAUserBox,
     );
 
-    const notChangedUserBox = this.createUserBox(notChangePasswordUsers);
+    const notChangedUserBox = this.createUserBox(notChangedPasswordUsers);
     const updatedNotChangedUserBox = replaceValue(
       updatedUnusedMFAUserBox,
       '"{{update-password-aged-box}}"',
