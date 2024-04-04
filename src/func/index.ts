@@ -1,6 +1,19 @@
 import * as fs from 'fs';
 import { join } from 'path';
 
+export function getJSONData(filename: string) {
+  try {
+    const data = fs.readFileSync(
+      join(__dirname, `../data/${filename}.json`),
+      'utf8',
+    );
+    return JSON.parse(data);
+  } catch (error) {
+    console.error(`error = `, error);
+    return null;
+  }
+}
+
 export function getD2Template(filename: string) {
   try {
     const d2Template = fs.readFileSync(
